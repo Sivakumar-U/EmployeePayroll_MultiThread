@@ -1,10 +1,13 @@
 package com.blz.employee_multithreading;
 
+import static org.junit.Assert.assertTrue;
+
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -43,5 +46,17 @@ public class EmployeePayrollTest {
 		System.out.println("Duration With Thread : " + Duration.between(threadStart, threadEnd));
 		employeePayrollService.printData(IOService.DB_IO);
 		Assert.assertEquals(12, employeePayrollService.countEnteries(IOService.DB_IO));
+	}
+
+	@Test
+	public void givenNewSalaryForEmployee_WhenUpdated_MultipleThreading() throws EmployeePayrollException {
+		List<EmployeePayrollData> employeePayRollData = employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+		Instant threadStart = Instant.now();
+		employeePayrollService.updateEmployeeSalaryWithThreads("Charlie", 4000000.00);
+		Instant threadEnd = Instant.now();
+		System.out.println("Duration While Updated Query With Thread: " + Duration.between(threadStart, threadEnd));
+		boolean result = employeePayrollService.checkUpdatedRecordSyncWithDatabase("Charlie");
+		assertTrue(result);
 	}
 }
