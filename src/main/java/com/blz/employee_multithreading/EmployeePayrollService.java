@@ -2,6 +2,7 @@ package com.blz.employee_multithreading;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,7 +70,7 @@ public class EmployeePayrollService {
 				companyId, department));
 	}
 
-	public void addEmployeePayrollData(List<EmployeePayrollData> employeePayrollList) {
+	public void addEmployeePayrollData_MultiThread(List<EmployeePayrollData> employeePayrollList) {
 		employeePayrollList.forEach(employeePayrollData -> {
 			try {
 				this.addEmployeePayRollData(employeePayrollData.name, employeePayrollData.gender,
@@ -88,6 +89,42 @@ public class EmployeePayrollService {
 		if (ioService.equals(IOService.FILE_IO))
 			return new EmployeePayrollService().countEnteries(ioService);
 		return employeePayrollList.size();
+	}
+
+	public void addEmployeeToPayRollWIthThreads(List<EmployeePayrollData> employeePayRollList) {
+		Map<Integer, Boolean> employeeAditionStatus = new HashMap<Integer, Boolean>();
+		employeePayRollList.forEach(employeePayRollData -> {
+			Runnable task = () -> {
+				employeeAditionStatus.put(employeePayRollData.hashCode(), false);
+				System.out.println("Employee Added:" + Thread.currentThread().getName());
+				try {
+					this.addEmployeePayRollData(employeePayRollData.name, employeePayRollData.gender,
+							employeePayRollData.salary, employeePayRollData.startDate);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				employeeAditionStatus.put(employeePayRollData.hashCode(), true);
+				System.out.println("Employee Added: " + Thread.currentThread().getName());
+
+			};
+			Thread thread = new Thread(task, employeePayRollData.name);
+			thread.start();
+		});
+		while (employeeAditionStatus.containsValue(false)) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+			}
+		}
+
+	}
+
+	public void printData(IOService ioService) {
+		if (ioService.equals(IOService.FILE_IO))
+			new EmployeePayrollService().printData(ioService.DB_IO);
+		else
+			System.out.println(employeePayrollList);
+
 	}
 
 }
