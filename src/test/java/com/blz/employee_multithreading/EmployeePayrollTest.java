@@ -34,9 +34,14 @@ public class EmployeePayrollTest {
 
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
 		Instant start = Instant.now();
-		employeePayrollService.addEmployeePayrollData(Arrays.asList(arrayOfEmps));
+		employeePayrollService.addEmployeePayrollData_MultiThread(Arrays.asList(arrayOfEmps));
 		Instant end = Instant.now();
 		System.out.println("Duration without thread: " + Duration.between(start, end));
-		Assert.assertEquals(15, employeePayrollService.countEnteries(IOService.DB_IO));
+		Instant threadStart = Instant.now();
+		employeePayrollService.addEmployeeToPayRollWIthThreads(Arrays.asList(arrayOfEmps));
+		Instant threadEnd = Instant.now();
+		System.out.println("Duration With Thread : " + Duration.between(threadStart, threadEnd));
+		employeePayrollService.printData(IOService.DB_IO);
+		Assert.assertEquals(21, employeePayrollService.countEnteries(IOService.DB_IO));
 	}
 }
