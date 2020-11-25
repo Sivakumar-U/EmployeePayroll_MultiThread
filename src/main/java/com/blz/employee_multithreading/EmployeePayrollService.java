@@ -63,11 +63,11 @@ public class EmployeePayrollService {
 
 	}
 
-	public void addEmployeePayrollData(String name, String gender, double salary, LocalDate date, String companyName,
-			int companyId, String department) {
+	public void addEmployeePayrollDataUC11(String name, String gender, double salary, LocalDate date,
+			String companyName, int companyId, String department) {
 
-		employeePayrollList.add(employeePayrollDBService.addEmployeeToPayRoll(name, gender, salary, date, companyName,
-				companyId, department));
+		employeePayrollList.add(employeePayrollDBService.addEmployeeToPayRollUC11(name, gender, salary, date,
+				companyName, companyId, department));
 	}
 
 	public void addEmployeePayrollData_MultiThread(List<EmployeePayrollData> employeePayrollList) {

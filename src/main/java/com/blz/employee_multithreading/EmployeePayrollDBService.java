@@ -19,6 +19,7 @@ public class EmployeePayrollDBService {
 
 	private PreparedStatement employeePayrollPreparedStatement;
 	private static EmployeePayrollDBService employeePayrollDBService;
+	private int connectionCounter = 0;
 
 	private EmployeePayrollDBService() {
 	}
@@ -29,15 +30,19 @@ public class EmployeePayrollDBService {
 		return employeePayrollDBService;
 	}
 
-	private Connection getConnection() throws SQLException {
+	private synchronized Connection getConnection() throws SQLException {
+		connectionCounter++;
 		String jdbcURL = "jdbc:mysql://localhost:3306/payroll_service?useSSL=false";
-		String username = "root";
+		String userName = "root";
 		String password = "Amigos@1";
-		Connection con;
-		System.out.println("Connecting to database:" + jdbcURL);
-		con = DriverManager.getConnection(jdbcURL, username, password);
-		System.out.println("Connection is successful:" + con);
-		return con;
+		Connection connection;
+		System.out.println("Processing Thread: " + Thread.currentThread().getName() + "connecting to database with Id"
+				+ connectionCounter);
+		connection = DriverManager.getConnection(jdbcURL, userName, password);
+		System.out.println("Processing Thread: " + Thread.currentThread().getName() + "connecting to database with Id"
+				+ connectionCounter + "Connection Successful" + connection);
+
+		return connection;
 	}
 
 	public List<EmployeePayrollData> readData() {
@@ -145,6 +150,28 @@ public class EmployeePayrollDBService {
 		return genderToAverageSalaryMap;
 	}
 
+	public EmployeePayrollData addEmployeeToPayRollUC7(String name, String gender, double salary, LocalDate date)
+			throws SQLException {
+		int employeeId = -1;
+		EmployeePayrollData employeePayRollData = null;
+		String sql = String.format(
+				"INSERT INTO employee_payroll (name, gender, salary, start)" + "VALUES ( '%s', '%s', '%s', '%s')", name,
+				gender, salary, Date.valueOf(date));
+		try (Connection connection = this.getConnection()) {
+			Statement statement = connection.createStatement();
+			int rowAffected = statement.executeUpdate(sql, statement.RETURN_GENERATED_KEYS);
+			if (rowAffected == 1) {
+				ResultSet resultSet = statement.getGeneratedKeys();
+				if (resultSet.next())
+					employeeId = resultSet.getInt(1);
+			}
+			employeePayRollData = new EmployeePayrollData(employeeId, name, salary, date);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return employeePayRollData;
+	}
+
 	public EmployeePayrollData addEmployeeToPayRoll(String name, String gender, double salary, LocalDate date)
 			throws SQLException {
 		int id = -1;
@@ -201,7 +228,7 @@ public class EmployeePayrollDBService {
 
 	}
 
-	public EmployeePayrollData addEmployeeToPayRoll(String name, String gender, double salary, LocalDate date,
+	public EmployeePayrollData addEmployeeToPayRollUC11(String name, String gender, double salary, LocalDate date,
 			String companyName, int companyId, String department) {
 		int id = -1;
 		Connection connection = null;
